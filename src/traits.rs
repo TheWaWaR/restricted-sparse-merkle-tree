@@ -7,6 +7,7 @@ use crate::{
 /// Trait for customize hash function
 pub trait Hasher {
     fn write_h256(&mut self, h: &H256);
+    fn write_byte(&mut self, b: u8);
     fn finish(self) -> H256;
 }
 
