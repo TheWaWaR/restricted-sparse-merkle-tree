@@ -701,18 +701,32 @@ fn test_replay_to_pass_proof() {
         (key4, non_existing),
     ];
     let smt = new_smt(pairs.clone());
+    println!(">>> build smt finished\n");
     let leaf_a_bl = vec![(key1, H256::zero())];
     let leaf_c = vec![pairs[2]];
     let proofc = smt
         .merkle_proof(leaf_c.clone().into_iter().map(|(k, _)| k).collect())
         .expect("gen proof");
-    // merkle proof, leaf is faked
+    println!("proof.leaves_path: {:?}", proofc.leaves_path());
+    for (idx, hash) in proofc.proof().iter().enumerate() {
+        println!("proof[{}], hash = {}", idx, hex::encode(hash.as_slice()));
+    }
+    let compiled_proof = proofc.clone().compile(leaf_c.clone()).expect("compile proof");
+    println!("compiled proof: {}\n", hex::encode(&compiled_proof.0));
+
+    println!("verify ok case");
+    assert!(proofc
+            .clone()
+            .verify::<Blake2bHasher>(smt.root(), leaf_c.clone())
+            .expect("verify"));
+
+    println!("merkle proof, leaf is faked");
     assert!(!proofc
         .clone()
         .verify::<Blake2bHasher>(smt.root(), leaf_a_bl.clone())
         .expect("verify"));
-    // compiled merkle proof, leaf is faked
-    let compiled_proof = proofc.compile(leaf_c).expect("compile proof");
+
+    println!("compiled merkle proof, leaf is faked");
     assert!(!compiled_proof
         .verify::<Blake2bHasher>(smt.root(), leaf_a_bl)
         .expect("verify compiled proof"));
